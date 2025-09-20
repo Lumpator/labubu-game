@@ -1,0 +1,1358 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Labubu - Hra na Sbírání Mincí</title>
+    <style>
+        :root {
+            --bg-1: #071722;
+            --bg-2: #082b34;
+            --card: #06323b;
+            --gold1: #ffd66b;
+            --gold2: #ffb300;
+            --muted: #9fb0bd;
+            --glass: rgba(255, 255, 255, 0.03);
+            --accent: #7BF2B0;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            background: linear-gradient(180deg, var(--bg-1), var(--bg-2));
+            color: #eaf6ff
+        }
+
+        .wrap {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 28px
+        }
+
+        /* Panel */
+        .panel {
+            width: 980px;
+            max-width: 96vw;
+            border-radius: 20px;
+            padding: 18px;
+            position: relative;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+            border: 6px solid rgba(255, 197, 71, 0.06);
+            overflow: hidden;
+        }
+
+        .fancy-frame {
+            position: absolute;
+            inset: 8px;
+            border-radius: 14px;
+            pointer-events: none;
+            box-shadow: 0 0 0 6px rgba(255, 197, 71, 0.04) inset;
+            background: radial-gradient(1200px 600px at 10% 10%, rgba(255, 241, 182, 0.02), transparent);
+        }
+
+        /* Header / tabs */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px
+        }
+
+        .title {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--gold1);
+            letter-spacing: 1px
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px
+        }
+
+        .tab {
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-weight: 800;
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            transition: all .25s ease;
+        }
+
+        .tab.active {
+            background: linear-gradient(180deg, var(--gold1), var(--gold2));
+            color: #112422;
+            box-shadow: 0 12px 30px rgba(255, 183, 46, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .main {
+            display: flex;
+            gap: 18px
+        }
+
+        /* Game column */
+        .game {
+            flex: 1 1 620px;
+            padding: 16px;
+            border-radius: 12px;
+            background: linear-gradient(180deg, #04202a, #05323a);
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .section-title {
+            color: var(--gold1);
+            font-weight: 800;
+            margin-bottom: 8px;
+            text-align: center
+        }
+
+        .problem-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px
+        }
+
+        .problem {
+            flex: 1;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 38px;
+            font-weight: 900;
+            text-align: center;
+            color: #fff;
+            box-shadow: inset 0 -8px 24px rgba(0, 0, 0, 0.4);
+            min-width: 280px;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+            width: 240px
+        }
+
+        .input-row {
+            display: flex;
+            gap: 8px
+        }
+
+        .answer-choices {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 12px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .answer-btn {
+            padding: 20px 16px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            font-weight: 800;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+            color: #fff;
+            outline: none;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+            min-height: 70px;
+            touch-action: manipulation;
+        }
+
+        .answer-btn:hover {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06));
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .answer-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .answer-btn.correct {
+            background: linear-gradient(180deg, var(--accent), #5fd49a);
+            color: #0a2c1a;
+            box-shadow: 0 12px 30px rgba(123, 242, 176, 0.3);
+        }
+
+        .answer-btn.incorrect {
+            background: linear-gradient(180deg, #f78b8b, #e74c3c);
+            color: #2c1010;
+            box-shadow: 0 8px 20px rgba(247, 139, 139, 0.3);
+        }
+
+        input[type="number"] {
+            width: 100px;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            font-size: 22px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.02);
+            color: #fff;
+            outline: none;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.5);
+        }
+
+        button.btn {
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 800;
+            letter-spacing: .6px;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45);
+        }
+
+        .btn-submit {
+            background: linear-gradient(180deg, var(--gold1), var(--gold2));
+            color: #102624;
+        }
+
+        .btn-skip {
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid rgba(255, 255, 255, 0.03)
+        }
+
+        .hint {
+            font-size: 12px;
+            color: var(--muted);
+            text-align: center;
+            margin-top: 8px
+        }
+
+        /* Coins grid */
+        .coins {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 18px
+        }
+
+        .coin {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 62px;
+            border-radius: 12px;
+            font-weight: 900;
+            font-size: 18px;
+            color: #3a2200;
+            background: linear-gradient(180deg, #ffd66b, #ffb300);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+            transform-origin: center;
+            transition: transform .25s cubic-bezier(.2, .9, .1, 1), box-shadow .25s;
+        }
+
+        .coin.locked {
+            background: linear-gradient(180deg, #0b2630, #072024);
+            color: #6fa7ad;
+            box-shadow: none;
+            filter: grayscale(.2);
+            opacity: .5
+        }
+
+        .coin.pop {
+            transform: translateY(-8px) scale(1.06);
+            box-shadow: 0 18px 40px rgba(255, 183, 46, 0.18)
+        }
+
+        .open-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 12px
+        }
+
+        .open-btn {
+            padding: 16px 26px;
+            border-radius: 16px;
+            border: none;
+            font-weight: 900;
+            font-size: 18px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            background: linear-gradient(180deg, #fff2b8, #ffd66b);
+            color: #112422;
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+            transition: transform .12s ease, filter .12s ease;
+        }
+
+        .open-btn.disabled {
+            filter: grayscale(.5);
+            opacity: .5;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none
+        }
+
+        /* Right side (collection preview & controls) */
+        .side {
+            width: 320px;
+            padding: 14px;
+            border-radius: 12px;
+            background: linear-gradient(180deg, #072a31, #05323a);
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .big-labubu {
+            height: 240px;
+            border-radius: 12px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative
+        }
+
+        .big-labubu img {
+            max-height: 100%;
+            max-width: 100%;
+            border-radius: 10px;
+            transform-origin: center;
+            transition: transform .3s
+        }
+
+        .big-label {
+            font-weight: 800;
+            color: var(--gold1);
+            text-align: center
+        }
+
+        .collected {
+            background: transparent;
+            padding: 8px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-height: 120px
+        }
+
+        .grid-collected {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        .slot-small {
+            width: 72px;
+            height: 72px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.03)
+        }
+
+        .slot-small img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain
+        }
+
+        .meta {
+            font-size: 13px;
+            color: var(--muted);
+            text-align: center;
+            margin-top: auto
+        }
+
+        /* Collection screen */
+        .collection-screen {
+            padding: 12px;
+            animation: fadeIn .36s ease
+        }
+
+        .collection-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px
+        }
+
+        .collection-card {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.06));
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+            position: relative;
+            min-height: 120px;
+            overflow: visible;
+            transform-origin: center;
+            transition: transform .22s ease, box-shadow .22s ease;
+        }
+
+        .collection-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5)
+        }
+
+        .mystery {
+            width: 100%;
+            height: 88px;
+            border-radius: 8px;
+            background: linear-gradient(180deg, #0b2b3a, #072028);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 38px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .count-badge {
+            position: absolute;
+            right: 8px;
+            top: 8px;
+            background: linear-gradient(180deg, var(--gold1), var(--gold2));
+            padding: 6px 8px;
+            border-radius: 10px;
+            color: #112422;
+            font-weight: 800;
+            font-size: 13px;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35)
+        }
+
+        /* flip reveal */
+        .flip-card {
+            perspective: 1000px;
+            width: 100%;
+            height: 88px
+        }
+
+        .flip-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform .7s cubic-bezier(.2, .9, .1, 1);
+            transform-style: preserve-3d;
+        }
+
+        .flip-front,
+        .flip-back {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .flip-front {
+            transform: rotateY(0deg)
+        }
+
+        .flip-back {
+            transform: rotateY(180deg)
+        }
+
+        .flipped .flip-inner {
+            transform: rotateY(180deg);
+        }
+
+        /* modal for reveal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 60;
+            background: radial-gradient(800px 400px at 50% 10%, rgba(255, 241, 182, 0.06), rgba(1, 6, 8, 0.8));
+        }
+
+        .modal.show {
+            display: flex
+        }
+
+        .modal-card {
+            width: 420px;
+            max-width: 92vw;
+            background: linear-gradient(180deg, #072e38, #06323b);
+            padding: 18px;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+        }
+
+        .modal-card .reveal-area {
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative
+        }
+
+        .reveal-card {
+            width: 200px;
+            height: 200px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, #0b2630, #072024);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            color: #fff;
+            font-weight: 900;
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6)
+        }
+
+        .modal-name {
+            color: var(--gold1);
+            font-weight: 900;
+            margin-top: 8px
+        }
+
+        .close-btn {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer
+        }
+
+        /* confetti pieces */
+        .confetti-piece {
+            position: fixed;
+            z-index: 80;
+            pointer-events: none;
+            will-change: transform, opacity
+        }
+
+        /* helpers */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px)
+            }
+
+            to {
+                opacity: 1;
+                transform: none
+            }
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0
+        }
+
+        @media (max-width:960px) {
+            .main {
+                flex-direction: column
+            }
+
+            .side {
+                width: 100%
+            }
+
+            .collection-grid {
+                grid-template-columns: repeat(3, 1fr)
+            }
+
+            .answer-choices {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 6px;
+                max-width: 100%;
+            }
+
+            .answer-btn {
+                padding: 18px 8px;
+                font-size: 18px;
+                min-height: 65px;
+            }
+        }
+
+        @media (max-width:640px) {
+            .answer-choices {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 4px;
+            }
+
+            .answer-btn {
+                padding: 15px 6px;
+                font-size: 16px;
+                min-height: 60px;
+            }
+
+            .controls {
+                width: 100%;
+            }
+
+            .problem-wrap {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .problem {
+                min-width: auto;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <div class="panel" role="application" aria-label="Labubu coin opening game">
+            <div class="fancy-frame" aria-hidden="true"></div>
+
+            <div class="header">
+                <div class="title">LABUBU — ZÁŘIVÁ KRABIČKA</div>
+                <div class="tabs" role="tablist" aria-label="Hlavní záložky">
+                    <button id="tabGame" class="tab active" role="tab" aria-selected="true">Hra</button>
+                    <button id="tabCollection" class="tab" role="tab" aria-selected="false">Sbírka</button>
+                </div>
+            </div>
+
+            <div class="main">
+                <!-- Game Column -->
+                <div class="game" id="gameScreen" role="region" aria-label="Herní obrazovka">
+                    <div class="section-title">Řeš a Sbírej Mince</div>
+
+                    <div class="problem-wrap" aria-live="polite">
+                        <div class="problem" id="problemDisplay" aria-hidden="false">0 + 0 =</div>
+
+                        <div class="controls">
+                            <div class="answer-choices" id="answerChoices">
+                                <!-- Tlačítka odpovědí budou vygenerována automaticky -->
+                            </div>
+                            <div class="hint">Jednoduché sčítání a odčítání (výsledky 0–20). Každá správná odpověď = 1
+                                mince.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="coins" id="coinsGrid" aria-hidden="false" style="margin-top:16px"></div>
+
+                    <div class="open-wrap">
+                        <button id="openBtn" class="open-btn disabled" aria-disabled="true">OTEVŘI LABUBU — 10
+                            MINCÍ</button>
+                    </div>
+
+                    <div style="margin-top:18px;font-weight:800;color:var(--muted);text-align:center">Naposledy sebrané
+                    </div>
+                    <div class="big-labubu" aria-live="polite" id="lastWrap">
+                        <img id="lastSprite" src="" alt="Naposledy sebrané Labubu" />
+                    </div>
+
+                </div>
+
+                <!-- Strana / Náhled sbírky -->
+                <aside class="side" id="sidePanel" role="complementary" aria-label="Náhled sbírky">
+                    <div class="section-title">Sebraná Labubu</div>
+                    <div class="collected" id="collectedPreview">
+                        <div class="grid-collected" id="collectedGrid"></div>
+                    </div>
+                    <div class="meta">Postup se ukládá místně. Pro reset: dvojklik na název.</div>
+                </aside>
+            </div>
+
+            <!-- Collection screen (hidden by default; appears when tab clicked) -->
+            <div id="collectionScreen" class="collection-screen" style="display:none; margin-top:18px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                    <div style="font-weight:900;color:var(--gold1)">Moje Sbírka Labubu</div>
+                    <div style="color:var(--muted)">Sebrané typy: <span id="collectedCount">0</span> / 50</div>
+                </div>
+                <div class="collection-grid" id="collectionGrid" role="region" aria-label="Celá sbírka labubu"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal reveal -->
+    <div id="revealModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="modal-card" role="document">
+            <div style="font-weight:900;color:var(--gold1);font-size:20px">Otevřel jsi Labubu!</div>
+            <div class="modal-card-inner" style="margin-top:12px">
+                <div class="reveal-area">
+                    <div id="revealFlip" class="reveal-card flip-card">
+                        <div class="flip-inner" id="revealInner">
+                            <div class="flip-front" id="revealFront">
+                                <div
+                                    style="width:100%;height:100%;display:flex;align-items:center;justify-content:center; font-size:36px;color:#fff;font-weight:900">
+                                    ❓
+                                </div>
+                            </div>
+                            <div class="flip-back" id="revealBack" style="transform:rotateY(180deg);">
+                                <div id="revealImg"
+                                    style="width:100%;height:100%;display:flex;align-items:center;justify-content:center">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-name" id="revealName" style="margin-top:10px">Labubu #0</div>
+                <button class="close-btn" id="closeReveal">Zavřít</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- placeholder to attach confetti pieces -->
+    <div id="confettiRoot"></div>
+
+    <script>
+        /* =========================
+           CONFIG & PLACEHOLDERS
+           ========================= */
+        const TOTAL = 50;
+        const REQUIRED_COINS = 10;
+        const STATE_KEY = 'labubu_fancy_v1';
+
+        /* Use PNG or JPG images from the img folder (1.png/1.jpg, 2.png/2.jpg, ..., 50.png/50.jpg)
+           Images should be placed in the img/ folder and named 1-50.png OR 1-50.jpg
+           The game will automatically try PNG first, then JPG, then show fallback
+        */
+        function getLabubuImagePath(i) {
+            // We'll start with PNG, but the error handling will try JPG automatically
+            return `img/${i + 1}.png`;
+        }
+
+        function getLabubuImagePathJPG(i) {
+            return `img/${i + 1}.jpg`;
+        }
+
+        // Create a simple fallback SVG for missing images
+        function createFallbackSVG(i) {
+            const colors = ['#ff99c8', '#ffd97a', '#a0e7e5', '#bdb2ff', '#caffbf'];
+            const bg = colors[i % colors.length];
+            const svg = `
+  <svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320">
+    <rect width="100%" height="100%" rx="28" fill="${bg}"/>
+    <text x="50%" y="50%" font-size="24" font-weight="800" text-anchor="middle" dominant-baseline="middle" fill="#333">
+      Labubu ${i + 1}
+    </text>
+    <text x="50%" y="65%" font-size="14" text-anchor="middle" dominant-baseline="middle" fill="#666">
+      (Add ${i + 1}.png or ${i + 1}.jpg to img/)
+    </text>
+  </svg>`;
+            return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+        }
+
+        // Build initial labubus srcs (50 PNG images with fallbacks)
+        const labubusSrcs = Array.from({ length: TOTAL }, (_, i) => getLabubuImagePath(i));
+
+        // Helper function to create images with fallback (PNG -> JPG -> SVG)
+        function createImageWithFallback(src, alt, style, index) {
+            return `<img src="${src}" alt="${alt}" style="${style}" onerror="this.onerror=function(){this.onerror=null; this.src='${createFallbackSVG(index)}';}; this.src='${getLabubuImagePathJPG(index)}';" />`;
+        }
+
+        /* =========================
+           STATE
+           ========================= */
+        let state = {
+            coins: 0,
+            labubus: Array.from({ length: TOTAL }, (_, i) => ({
+                id: i,
+                name: `Labubu ${i + 1}`,
+                src: labubusSrcs[i],
+                count: 0,
+                lastCollected: null
+            }))
+        };
+
+        // Load saved state if exists
+        function loadState() {
+            try {
+                const raw = localStorage.getItem(STATE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed && typeof parsed === 'object') {
+                        // Merge safely (for future version upgrades)
+                        if (Array.isArray(parsed.labubus) && parsed.labubus.length === TOTAL) {
+                            state = parsed;
+                            // Ujistíme se, že všechny labubus mají lastCollected property
+                            state.labubus.forEach((labubu, index) => {
+                                if (!labubu.lastCollected && labubu.count > 0) {
+                                    // Pro existující data bez timestamp, použijeme ID jako fallback
+                                    labubu.lastCollected = index * 1000; // rozdílné časy
+                                }
+                            });
+                        } else {
+                            // attempt to merge counts if shape mismatch
+                            parsed.labubus = parsed.labubus || [];
+                            for (let i = 0; i < TOTAL; i++) {
+                                if (parsed.labubus[i] && typeof parsed.labubus[i].count === 'number') {
+                                    state.labubus[i].count = parsed.labubus[i].count;
+                                }
+                            }
+                            if (typeof parsed.coins === 'number') state.coins = parsed.coins;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('Could not load state', e);
+            }
+        }
+        function saveState() {
+            try { localStorage.setItem(STATE_KEY, JSON.stringify(state)); } catch (e) { console.warn('Could not save state', e); }
+        }
+
+        /* =========================
+           DOM refs
+           ========================= */
+        const tabGame = document.getElementById('tabGame');
+        const tabCollection = document.getElementById('tabCollection');
+        const gameScreen = document.getElementById('gameScreen');
+        const collectionScreen = document.getElementById('collectionScreen');
+
+        const problemDisplay = document.getElementById('problemDisplay');
+        const answerChoices = document.getElementById('answerChoices');
+
+        const coinsGrid = document.getElementById('coinsGrid');
+        const openBtn = document.getElementById('openBtn');
+
+        const lastSprite = document.getElementById('lastSprite');
+        const collectedGridSmall = document.getElementById('collectedGrid');
+
+        const collectionGrid = document.getElementById('collectionGrid');
+        const collectedCountEl = document.getElementById('collectedCount');
+
+        const revealModal = document.getElementById('revealModal');
+        const revealInner = document.getElementById('revealInner');
+        const revealFront = document.getElementById('revealFront');
+        const revealBack = document.getElementById('revealBack');
+        const revealImg = document.getElementById('revealImg');
+        const revealName = document.getElementById('revealName');
+        const closeReveal = document.getElementById('closeReveal');
+
+        const confettiRoot = document.getElementById('confettiRoot');
+        const titleEl = document.querySelector('.title');
+
+        /* =========================
+           PROBLEM GENERATION
+           ========================= */
+        let currentProblem = { a: 0, b: 0, op: '+' };
+        function newProblem() {
+            const op = Math.random() < 0.5 ? '+' : '-';
+            if (op === '+') {
+                const a = randInt(0, 20);
+                const b = randInt(0, 20 - a);
+                currentProblem = { a, b, op };
+            } else {
+                const a = randInt(0, 20);
+                const b = randInt(0, a);
+                currentProblem = { a, b, op };
+            }
+            problemDisplay.textContent = `${currentProblem.a} ${currentProblem.op} ${currentProblem.b} =`;
+            generateAnswerChoices();
+        }
+
+        function generateAnswerChoices() {
+            const correct = correctAnswer();
+            const choices = new Set([correct]);
+
+            // Generate 4 incorrect answers
+            while (choices.size < 5) {
+                let wrong;
+                if (Math.random() < 0.5) {
+                    // Add/subtract small numbers from correct answer
+                    wrong = correct + randInt(-3, 3);
+                } else {
+                    // Generate random numbers in valid range
+                    wrong = randInt(0, 20);
+                }
+
+                // Ensure the wrong answer is within valid range and different from correct
+                if (wrong >= 0 && wrong <= 20 && wrong !== correct) {
+                    choices.add(wrong);
+                }
+            }
+
+            // Convert to array and shuffle
+            const choicesArray = Array.from(choices);
+            for (let i = choicesArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [choicesArray[i], choicesArray[j]] = [choicesArray[j], choicesArray[i]];
+            }
+
+            // Create buttons
+            answerChoices.innerHTML = '';
+            choicesArray.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.textContent = choice;
+                btn.onclick = () => submitAnswer(choice);
+                answerChoices.appendChild(btn);
+            });
+        }
+        function correctAnswer() {
+            return currentProblem.op === '+' ? currentProblem.a + currentProblem.b : currentProblem.a - currentProblem.b;
+        }
+        function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+        /* =========================
+           UI RENDERING
+           ========================= */
+        function renderCoins() {
+            coinsGrid.innerHTML = '';
+            for (let i = 1; i <= REQUIRED_COINS; i++) {
+                const div = document.createElement('div');
+                const unlocked = i <= state.coins;
+                div.className = 'coin ' + (unlocked ? 'unlocked' : 'locked');
+                div.innerHTML = unlocked ? '💰' : '🔒';
+                coinsGrid.appendChild(div);
+            }
+            if (state.coins >= REQUIRED_COINS) {
+                openBtn.classList.remove('disabled');
+                openBtn.removeAttribute('aria-disabled');
+            } else {
+                openBtn.classList.add('disabled');
+                openBtn.setAttribute('aria-disabled', 'true');
+            }
+        }
+
+        function renderLastCollected() {
+            // show last collected sprite (most recent with count > 0)
+            const collected = state.labubus.filter(x => x.count > 0);
+            const last = collected.sort((a, b) => {
+                // Seřadíme podle času sběru (nejnovější první)
+                const timeA = a.lastCollected || 0;
+                const timeB = b.lastCollected || 0;
+                return timeB - timeA;
+            })[0];
+
+            if (last) {
+                lastSprite.src = last.src;
+                lastSprite.alt = last.name;
+                lastSprite.onerror = function () {
+                    this.onerror = function () {
+                        this.onerror = null;
+                        this.src = createFallbackSVG(last.id);
+                    };
+                    this.src = getLabubuImagePathJPG(last.id);
+                };
+                lastSprite.style.transform = 'scale(0.98)';
+                requestAnimationFrame(() => lastSprite.style.transform = 'scale(1)');
+
+                // Přidáme click handler pro zobrazení v plné velikosti
+                lastSprite.onclick = () => showImageModal(last.id);
+                lastSprite.style.cursor = 'pointer';
+            } else {
+                lastSprite.src = '';
+                lastSprite.alt = '';
+                lastSprite.onclick = null;
+                lastSprite.style.cursor = 'default';
+            }
+        }
+
+        function renderCollectedPreview() {
+            collectedGridSmall.innerHTML = '';
+            const collected = state.labubus.filter(x => x.count > 0).slice(-6);
+            collected.forEach(item => {
+                const slot = document.createElement('div');
+                slot.className = 'slot-small';
+                const img = document.createElement('img');
+                img.src = item.src;
+                img.alt = item.name;
+                img.onerror = function () {
+                    this.onerror = function () {
+                        this.onerror = null;
+                        this.src = createFallbackSVG(item.id);
+                    };
+                    this.src = getLabubuImagePathJPG(item.id);
+                };
+                slot.appendChild(img);
+
+                // Přidáme click handler pro zobrazení v plné velikosti
+                slot.style.cursor = 'pointer';
+                slot.onclick = () => showImageModal(item.id);
+
+                collectedGridSmall.appendChild(slot);
+            });
+        }
+
+        /* full collection grid (50) */
+        function renderCollectionGrid(flippedIndex = null) {
+            collectionGrid.innerHTML = '';
+            let collectedTypes = 0;
+            state.labubus.forEach((item, idx) => {
+                const card = document.createElement('div');
+                card.className = 'collection-card';
+                // flip area container
+                const flip = document.createElement('div');
+                flip.className = 'flip-card';
+                const inner = document.createElement('div');
+                inner.className = 'flip-inner';
+                // front (mystery) and back (image)
+                const front = document.createElement('div');
+                front.className = 'flip-front';
+                front.innerHTML = `<div class="mystery">❓</div>`;
+                const back = document.createElement('div');
+                back.className = 'flip-back';
+                back.style.transform = 'rotateY(180deg)';
+                back.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:88px">${createImageWithFallback(item.src, item.name, 'max-width:88px;max-height:88px;border-radius:8px', item.id)}</div>`;
+
+                inner.appendChild(front);
+                inner.appendChild(back);
+                flip.appendChild(inner);
+
+                if (item.count > 0) {
+                    collectedTypes++;
+                    // start flipped
+                    inner.style.transform = 'rotateY(180deg)';
+                    const badge = document.createElement('div');
+                    badge.className = 'count-badge';
+                    badge.textContent = 'x' + item.count;
+                    card.appendChild(badge);
+
+                    // Přidáme click handler pro zobrazení v plné velikosti
+                    card.style.cursor = 'pointer';
+                    card.onclick = () => showImageModal(item.id);
+                } else {
+                    // uncollected
+                    card.style.cursor = 'default';
+                    card.onclick = null;
+                }
+
+                card.appendChild(flip);
+                const nameEl = document.createElement('div');
+                nameEl.style.marginTop = '10px';
+                nameEl.style.fontWeight = '800';
+                nameEl.style.color = item.count > 0 ? 'var(--gold1)' : 'var(--muted)';
+                nameEl.textContent = item.name;
+                card.appendChild(nameEl);
+
+                collectionGrid.appendChild(card);
+
+                // If caller requested a flip animation for a new reveal
+                if (flippedIndex !== null && flippedIndex === idx) {
+                    // animate flipping from front -> back
+                    setTimeout(() => {
+                        inner.classList.add('animate-flip');
+                        inner.style.transition = 'transform .8s cubic-bezier(.2,.9,.1,1)';
+                        inner.style.transform = 'rotateY(180deg)';
+                    }, 120);
+                    // pulse the card
+                    card.animate([{ transform: 'scale(0.96)' }, { transform: 'scale(1.03)' }, { transform: 'scale(1)' }], { duration: 600, easing: 'ease-out' });
+                    // small glow
+                    card.style.boxShadow = '0 20px 50px rgba(255,183,46,0.12)';
+                    setTimeout(() => card.style.boxShadow = '', 1200);
+                }
+            });
+
+            collectedCountEl.textContent = collectedTypes;
+        }
+
+        /* =========================
+           INTERACTIONS: answer / coins
+           ========================= */
+        function awardCoin() {
+            if (state.coins >= REQUIRED_COINS) return;
+            state.coins++;
+            saveState();
+            // animate coin pop on the newest coin element
+            renderCoins();
+            const coins = Array.from(coinsGrid.children);
+            const idx = Math.min(state.coins - 1, coins.length - 1);
+            if (coins[idx]) {
+                coins[idx].classList.add('pop');
+                setTimeout(() => coins[idx].classList.remove('pop'), 600);
+            }
+            // mild celebratory pulse
+            confettiBurstSmall();
+        }
+
+        function submitAnswer(selectedAnswer) {
+            const correct = correctAnswer();
+            const buttons = answerChoices.querySelectorAll('.answer-btn');
+
+            // Disable all buttons temporarily
+            buttons.forEach(btn => btn.disabled = true);
+
+            if (selectedAnswer === correct) {
+                // Mark correct answer
+                buttons.forEach(btn => {
+                    if (parseInt(btn.textContent) === correct) {
+                        btn.classList.add('correct');
+                    }
+                });
+
+                awardCoin();
+                flashMessage('Správně! +1 mince', '#7BF2B0');
+
+                // Move to next problem after short delay
+                setTimeout(() => {
+                    newProblem();
+                }, 1000);
+            } else {
+                // Mark wrong answer and show correct one
+                buttons.forEach(btn => {
+                    const btnValue = parseInt(btn.textContent);
+                    if (btnValue === selectedAnswer) {
+                        btn.classList.add('incorrect');
+                    } else if (btnValue === correct) {
+                        btn.classList.add('correct');
+                    }
+                });
+
+                flashMessage('Špatně — zkus to znovu', '#f78b8b');
+
+                // Re-enable buttons and remove classes after delay
+                setTimeout(() => {
+                    buttons.forEach(btn => {
+                        btn.disabled = false;
+                        btn.classList.remove('incorrect', 'correct');
+                    });
+                }, 1500);
+            }
+        }
+
+        // Funkce pro zobrazení obrázku v plné velikosti
+        function showImageModal(labubuId) {
+            const labubu = state.labubus[labubuId];
+            if (!labubu || labubu.count === 0) return;
+
+            revealModal.classList.add('show');
+            revealModal.setAttribute('aria-hidden', 'false');
+            revealName.textContent = labubu.name;
+
+            // Nastavíme obrázek na zadní stranu
+            revealImg.innerHTML = createImageWithFallback(labubu.src, labubu.name, 'max-width:100%;max-height:100%;border-radius:12px', labubuId);
+
+            // Rovnou zobrazíme zadní stranu (bez animace otáčení)
+            revealInner.style.transition = 'none';
+            revealInner.style.transform = 'rotateY(180deg)';
+
+            // Malé zvětšení
+            const revealCard = document.querySelector('#revealFlip');
+            revealCard.style.transform = 'scale(.85)';
+            setTimeout(() => revealCard.style.transform = 'scale(1)', 30);
+        }
+
+        /* =========================
+           OPENING & REVEAL
+           ========================= */
+        function openLabubu() {
+            if (state.coins < REQUIRED_COINS) return;
+            state.coins -= REQUIRED_COINS;
+
+            // choose random labubu slot (uniform). You could add rarity weighting later.
+            const idx = randInt(0, TOTAL - 1);
+
+            // increment count
+            state.labubus[idx].count = (state.labubus[idx].count || 0) + 1;
+
+            // Označíme čas sběru pro správné třídění (použijeme timestamp)
+            state.labubus[idx].lastCollected = Date.now();
+
+            saveState();
+
+            // show modal with flip animation and confetti
+            showRevealModal(idx);
+            // update UI after reveal anim
+            renderCoins();
+            renderCollectedPreview();
+            // Aktualizujeme poslední sebraného až po animaci
+            setTimeout(() => {
+                renderLastCollected();
+            }, 1000);
+        }
+
+        /* reveal modal: flip the big card and show image */
+        function showRevealModal(index) {
+            revealModal.classList.add('show');
+            revealModal.setAttribute('aria-hidden', 'false');
+            revealName.textContent = state.labubus[index].name;
+
+            // set the back image
+            revealImg.innerHTML = createImageWithFallback(state.labubus[index].src, state.labubus[index].name, 'max-width:100%;max-height:100%;border-radius:12px', index);
+
+            // ensure front face shows question mark, reset rotation
+            revealInner.style.transition = 'none';
+            revealInner.style.transform = 'rotateY(0deg)';
+
+            // small pop-in
+            const revealCard = document.querySelector('#revealFlip');
+            revealCard.style.transform = 'scale(.85)';
+            setTimeout(() => revealCard.style.transform = 'scale(1)', 30);
+
+            // animate flip after a short delay
+            setTimeout(() => {
+                revealInner.style.transition = 'transform .9s cubic-bezier(.2,.9,.1,1)';
+                revealInner.style.transform = 'rotateY(180deg)';
+                // confetti blast
+                confettiBurstBig();
+                // also flip the corresponding collection card when collection screen is visible
+                renderCollectionGrid(index);
+            }, 420);
+        }
+
+        /* close modal */
+        closeReveal.addEventListener('click', () => {
+            revealInner.style.transition = 'transform .45s ease';
+            revealInner.style.transform = 'rotateY(0deg)';
+            setTimeout(() => {
+                revealModal.classList.remove('show');
+                revealModal.setAttribute('aria-hidden', 'true');
+                // re-render grids
+                renderCollectionGrid();
+                renderLastCollected();
+            }, 260);
+        });
+
+        /* =========================
+           SMALL VISUAL HELPERS
+           ========================= */
+        function flashMessage(text, bg) {
+            const el = document.createElement('div');
+            el.textContent = text;
+            Object.assign(el.style, {
+                position: 'fixed', left: '50%', top: '18%', transform: 'translateX(-50%)', background: bg, padding: '8px 14px', borderRadius: '12px', color: '#032021', zIndex: 90, fontWeight: 900, boxShadow: '0 10px 30px rgba(0,0,0,0.45)'
+            });
+            document.body.appendChild(el);
+            setTimeout(() => el.style.transition = 'opacity .45s', 10);
+            setTimeout(() => el.style.opacity = '0', 900);
+            setTimeout(() => el.remove(), 1400);
+        }
+
+        /* confetti utilities */
+        function confettiBurstBig() {
+            // many pieces
+            for (let i = 0; i < 40; i++) {
+                createConfettiPiece(20 + Math.random() * 10);
+            }
+        }
+        function confettiBurstSmall() {
+            for (let i = 0; i < 12; i++) createConfettiPiece(8 + Math.random() * 6);
+        }
+        function createConfettiPiece(size) {
+            const el = document.createElement('div');
+            el.className = 'confetti-piece';
+            el.style.width = size + 'px';
+            el.style.height = size * 0.6 + 'px';
+            el.style.left = (50 + (Math.random() * 50 - 25)) + '%';
+            el.style.top = (40 + Math.random() * 10) + '%';
+            el.style.background = randomConfettiColor();
+            el.style.borderRadius = (Math.random() * 6) + 'px';
+            confettiRoot.appendChild(el);
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 160 + Math.random() * 260;
+            const dx = Math.cos(angle) * dist;
+            const dy = Math.sin(angle) * dist + 120;
+            const rotate = (Math.random() * 720 - 360);
+            el.animate([
+                { transform: `translate(0,0) rotate(0deg)`, opacity: 1 },
+                { transform: `translate(${dx}px, ${dy}px) rotate(${rotate}deg)`, opacity: 0 }
+            ], { duration: 900 + Math.random() * 500, easing: 'cubic-bezier(.2,.9,.1,1)' });
+            setTimeout(() => el.remove(), 1400 + Math.random() * 600);
+        }
+        function randomConfettiColor() {
+            const arr = ['#ffd66b', '#ffb300', '#7BF2B0', '#7ec8ff', '#ffb3d9', '#c7baff'];
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        /* =========================
+           NAV / TABS
+           ========================= */
+        tabGame.addEventListener('click', () => {
+            tabGame.classList.add('active');
+            tabCollection.classList.remove('active');
+            gameScreen.style.display = '';
+            // hide collection screen
+            collectionScreen.style.display = 'none';
+            // small animation
+            gameScreen.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 300 });
+        });
+
+        tabCollection.addEventListener('click', () => {
+            tabCollection.classList.add('active');
+            tabGame.classList.remove('active');
+            // show collection screen
+            collectionScreen.style.display = '';
+            // build grid (no flip)
+            renderCollectionGrid();
+            collectionScreen.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 300 });
+        });
+
+        /* =========================
+           EVENTS & INIT
+           ========================= */
+        openBtn.addEventListener('click', openLabubu);
+
+        // developer helper: double-click title resets state
+        titleEl.addEventListener('dblclick', () => {
+            if (confirm('Resetovat hru (mince + sbírku)?')) {
+                state.coins = 0;
+                state.labubus.forEach(it => it.count = 0);
+                saveState();
+                renderAll();
+            }
+        });
+
+        // small UX: clicking a small collected preview opens collection tab and highlights the item (not required)
+        collectedGridSmall.addEventListener('click', () => {
+            tabCollection.click();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // random animation helpers
+        function renderAll() {
+            renderCoins(); renderCollectedPreview(); renderLastCollected(); renderCollectionGrid();
+        }
+        loadState();
+        renderAll();
+        newProblem();
+
+        /* =========================
+           Utility: get last collected on load
+           ========================= */
+        (function setLastSpriteOnLoad() {
+            const last = [...state.labubus].reverse().find(x => x.count > 0);
+            if (last) {
+                lastSprite.src = last.src;
+                lastSprite.alt = last.name;
+                lastSprite.onerror = function () {
+                    this.onerror = null;
+                    this.src = createFallbackSVG(last.id);
+                };
+            }
+        })();
+
+    </script>
+</body>
+
+</html>
